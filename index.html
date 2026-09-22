@@ -1,10 +1,272 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>My GitHub Page</title>
-  </head>
-  <body>
-    <h1>Hello World!</h1>
-    <p>This is my new website hosted on GitHub Pages.</p>
-  </body>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noc Vědy - Šifrovací Výzva</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --primary: #4caf50;
+            --primary-hover: #45a049;
+            --text-main: #e0e0e0;
+            --text-muted: #888;
+            --gold: #ffc107;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-top: 0;
+        }
+
+        p.instructions {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #2c2c2c;
+            color: #fff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        /* Virtuální diplom */
+        .diploma {
+            margin-top: 25px;
+            padding: 20px;
+            border: 2px dashed var(--gold);
+            background: rgba(255, 193, 7, 0.1);
+            text-align: center;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .diploma h2 {
+            color: var(--gold);
+            margin: 0 0 10px 0;
+            font-size: 1.4rem;
+        }
+
+        .diploma p {
+            margin: 5px 0;
+        }
+
+        .diploma-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+            margin: 10px 0;
+        }
+
+        /* Žebříček */
+        .leaderboard {
+            margin-top: 35px;
+        }
+
+        .leaderboard h3 {
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px 5px;
+            border-bottom: 1px solid #333;
+        }
+
+        th { color: var(--text-muted); }
+        .rank { width: 30px; font-weight: bold; color: var(--gold); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Noc Vědy: Šifrovací Výzva</h1>
+        <p class="instructions">Zadej své jméno a konečnou tajenku z dokumentu <strong>sifry.docx</strong>. Všechny šifry používají 26 znakovou anglickou abecedu, a řeš bez AI!</p>
+
+        <div id="formSection">
+            <div class="input-group">
+                <label for="nameInput">Tvé jméno / Tým</label>
+                <input type="text" id="nameInput" placeholder="Např. Alan Turing">
+            </div>
+            
+            <div class="input-group">
+                <label for="answerInput">Tajenka (bez mezer a diakritiky)</label>
+                <input type="text" id="answerInput" placeholder="Odpověď z poslední šifry">
+            </div>
+
+            <button id="submitBtn">Ověřit řešení</button>
+        </div>
+
+        <div id="diploma" class="diploma">
+            <h2>🏆 Virtuální Diplom 🏆</h2>
+            <p>Tímto potvrzujeme, že</p>
+            <div id="diplomaName" class="diploma-name"></div>
+            <p>úspěšně dešifroval(a) všechny zprávy na Noci Vědy!</p>
+        </div>
+
+        <div class="leaderboard">
+            <h3>Síň slávy (Žebříček)</h3>
+            <table id="leaderboardTable">
+                <thead>
+                    <tr>
+                        <th class="rank">#</th>
+                        <th>Jméno</th>
+                        <th>Čas</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <!-- Data z JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 1. ZDE DOPLŇ SPRÁVNOU TAJENKU
+        const CORRECT_ANSWER = "TVOJE_TAJENKA_ZDE"; 
+        
+        // Získáme elementy
+        const submitBtn = document.getElementById('submitBtn');
+        const nameInput = document.getElementById('nameInput');
+        const answerInput = document.getElementById('answerInput');
+        const diploma = document.getElementById('diploma');
+        const diplomaName = document.getElementById('diplomaName');
+        const formSection = document.getElementById('formSection');
+        const leaderboardBody = document.getElementById('leaderboardBody');
+
+        // Formátování vstupu - převede na velká písmena, odstraní mezery
+        function normalizeString(str) {
+            return str.trim().toUpperCase().replace(/\s+/g, '');
+        }
+
+        // Zobrazení žebříčku
+        function renderLeaderboard() {
+            const solvers = JSON.parse(localStorage.getItem('nocVedyLeaderboard')) || [];
+            leaderboardBody.innerHTML = '';
+            
+            if (solvers.length === 0) {
+                leaderboardBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #888;">Zatím nikdo, buď první!</td></tr>';
+                return;
+            }
+
+            solvers.forEach((solver, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="rank">${index + 1}.</td>
+                    <td>${solver.name}</td>
+                    <td style="color: #888; font-size: 0.85rem;">${solver.time}</td>
+                `;
+                leaderboardBody.appendChild(tr);
+            });
+        }
+
+        // Kontrola řešení
+        submitBtn.addEventListener('click', () => {
+            const rawName = nameInput.value.trim();
+            const rawAnswer = answerInput.value;
+
+            if (!rawName || !rawAnswer) {
+                alert("Prosím, vyplň své jméno i tajenku.");
+                return;
+            }
+
+            // Ošetření tajenky na 26 znakovou anglickou abecedu
+            const cleanAnswer = normalizeString(rawAnswer);
+
+            if (cleanAnswer === normalizeString(CORRECT_ANSWER)) {
+                // Skryjeme formulář, ukážeme diplom
+                formSection.style.display = 'none';
+                diplomaName.textContent = rawName;
+                diploma.style.display = 'block';
+
+                // Uložení do LocalStorage
+                const solvers = JSON.parse(localStorage.getItem('nocVedyLeaderboard')) || [];
+                const now = new Date();
+                const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+                
+                solvers.push({ name: rawName, time: timeString });
+                localStorage.setItem('nocVedyLeaderboard', JSON.stringify(solvers));
+
+                renderLeaderboard();
+            } else {
+                // Trestná prodleva proti hádání by se dala přidat zde
+                alert("Bohužel, tajenka není správná. Zkontroluj svůj postup a zkus to znovu!");
+            }
+        });
+
+        // Při načtení stránky vykreslíme tabulku
+        renderLeaderboard();
+    </script>
+</body>
 </html>
