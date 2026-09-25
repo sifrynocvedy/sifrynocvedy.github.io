@@ -2,271 +2,404 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Noc Vědy - Šifrovací Výzva</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Šifry noc vědy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
+        /* SOFTER NEOACID / GLOW AESTHETIC */
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --primary: #4caf50;
-            --primary-hover: #45a049;
-            --text-main: #e0e0e0;
-            --text-muted: #888;
-            --gold: #ffc107;
+            --bg-base: #000000;
+            --bg-glow: #120303; /* Lehký nádech červené do pozadí */
+            --red-main: #e83838; /* Měkčí červená, méně agresivní na oči */
+            --red-dark: #4a1212;
+            --acid-green: #c4f533;
+            --text-main: #e0d8d8;
+            --glow-red-soft: rgba(232, 56, 56, 0.2);
+            --glow-red-strong: rgba(232, 56, 56, 0.5);
+            --glow-green-soft: rgba(196, 245, 51, 0.3);
+            --glow-green-strong: rgba(196, 245, 51, 0.6);
+        }
+
+        /* GLOBÁLNÍ ZELENÝ REŽIM PŘI DOKONČENÍ */
+        body.all-solved {
+            --bg-glow: #041203;
+            --red-main: var(--acid-green);
+            --red-dark: #1b380a;
+            --glow-red-soft: var(--glow-green-soft);
+            --glow-red-strong: var(--glow-green-strong);
+        }
+
+        /* STRICTLY NO ROUNDED CORNERS */
+        * {
+            box-sizing: border-box;
+            border-radius: 0 !important; 
         }
 
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-color);
+            /* Jemný haze efekt na pozadí místo ploché černé */
+            background: radial-gradient(circle at center, var(--bg-glow) 0%, var(--bg-base) 100%);
+            background-attachment: fixed;
             color: var(--text-main);
+            font-family: 'Space Mono', 'Courier New', Courier, monospace;
             margin: 0;
-            padding: 20px;
+            padding: 2rem 1rem;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.8s ease;
         }
 
-        .container {
+        .terminal-container {
             width: 100%;
-            max-width: 450px;
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            box-sizing: border-box;
+            max-width: 600px;
+            background: rgba(5, 0, 0, 0.8); /* Poloprůhledný podklad pro lepší hloubku */
+            border: 2px solid var(--red-main);
+            padding: 2rem;
+            /* Haze glow kolem hlavního kontejneru místo tvrdého stínu */
+            box-shadow: 0 0 40px var(--glow-red-soft), inset 0 0 20px var(--glow-red-soft); 
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+            transition: border-color 0.8s ease, box-shadow 0.8s ease;
         }
 
-        h1 {
-            font-size: 1.5rem;
-            text-align: center;
+        #main-header {
+            color: var(--red-main);
+            background-color: transparent;
+            text-transform: uppercase;
+            font-size: 1.8rem;
             margin-top: 0;
-        }
-
-        p.instructions {
-            font-size: 0.95rem;
-            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            letter-spacing: 3px;
+            padding-bottom: 10px;
             text-align: center;
-            margin-bottom: 25px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--red-main);
+            /* Haze na textu */
+            text-shadow: 0 0 10px var(--glow-red-strong);
+            transition: color 0.8s ease, border-color 0.8s ease, text-shadow 0.8s ease;
         }
 
-        .input-group {
-            margin-bottom: 15px;
+        #main-header.success {
+            color: var(--acid-green);
+            border-color: var(--acid-green);
+            text-shadow: 0 0 10px var(--glow-green-soft);
+        }
+
+        .instructions {
+            color: var(--red-main);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            line-height: 1.5;
+            font-weight: 700;
+            text-shadow: 0 0 5px var(--glow-red-soft);
+            transition: color 0.8s ease, text-shadow 0.8s ease;
+        }
+
+        .cipher-block {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid var(--red-dark);
+            background: rgba(10, 2, 2, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .cipher-block:focus-within {
+            border-color: var(--red-main);
+            box-shadow: 0 0 15px var(--glow-red-soft);
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
+            color: var(--red-main);
+            margin-bottom: 0.75rem;
+            font-weight: 700;
             font-size: 0.9rem;
-            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px var(--glow-red-soft);
+            transition: color 0.8s ease, text-shadow 0.8s ease;
         }
 
-        input {
+        input[type="text"] {
             width: 100%;
-            padding: 14px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background: #2c2c2c;
-            color: #fff;
-            font-size: 16px;
-            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--red-main);
+            border: 1px solid var(--red-main);
+            padding: 1rem;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            outline: none;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px var(--glow-red-soft);
+        }
+
+        input[type="text"]:focus {
+            background: rgba(232, 56, 56, 0.1);
+            box-shadow: inset 0 0 15px var(--glow-red-soft);
+        }
+
+        body.all-solved input[type="text"]:focus {
+            background: rgba(196, 245, 51, 0.1);
+        }
+
+        input[type="text"]:disabled {
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--acid-green);
+            border-color: var(--red-dark);
+            text-shadow: 0 0 8px var(--glow-green-soft);
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            gap: 1rem;
         }
 
         button {
-            width: 100%;
-            padding: 15px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background: var(--primary-hover);
-        }
-
-        /* Virtuální diplom */
-        .diploma {
-            margin-top: 25px;
-            padding: 20px;
-            border: 2px dashed var(--gold);
-            background: rgba(255, 193, 7, 0.1);
-            text-align: center;
-            border-radius: 8px;
-            display: none;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        .diploma h2 {
-            color: var(--gold);
-            margin: 0 0 10px 0;
-            font-size: 1.4rem;
-        }
-
-        .diploma p {
-            margin: 5px 0;
-        }
-
-        .diploma-name {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #fff;
-            margin: 10px 0;
-        }
-
-        /* Žebříček */
-        .leaderboard {
-            margin-top: 35px;
-        }
-
-        .leaderboard h3 {
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
+            background: transparent;
+            color: var(--red-main);
+            border: 1px solid var(--red-main);
+            padding: 0.75rem 2rem;
+            font-family: inherit;
+            font-weight: 700;
             font-size: 0.95rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            text-shadow: 0 0 5px var(--glow-red-soft);
+            box-shadow: 0 0 10px inset transparent;
         }
 
-        th, td {
-            text-align: left;
-            padding: 10px 5px;
-            border-bottom: 1px solid #333;
+        button:hover:not(:disabled) {
+            background: var(--red-main);
+            color: var(--bg-base);
+            box-shadow: 0 0 15px var(--glow-red-strong);
+            text-shadow: none;
         }
 
-        th { color: var(--text-muted); }
-        .rank { width: 30px; font-weight: bold; color: var(--gold); }
+        button:disabled {
+            background: rgba(20, 20, 20, 0.8);
+            color: #444;
+            border-color: #333;
+            text-shadow: none;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        body.all-solved button:disabled {
+            border-color: var(--red-dark);
+            color: rgba(196, 245, 51, 0.6);
+            background: rgba(10, 25, 5, 0.6);
+        }
+
+        .status {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            text-align: right;
+            flex-grow: 1;
+        }
+
+        .status.correct {
+            color: var(--acid-green);
+            text-shadow: 0 0 8px var(--glow-green-soft);
+        }
+
+        .status.incorrect {
+            color: var(--red-main);
+            text-shadow: 0 0 8px var(--glow-red-strong);
+        }
+
+        /* MOBILE SUPPORT */
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .terminal-container {
+                padding: 1.25rem;
+                box-shadow: 0 0 20px var(--glow-red-soft), inset 0 0 10px var(--glow-red-soft); 
+            }
+
+            #main-header {
+                font-size: 1.3rem;
+                letter-spacing: 2px;
+            }
+
+            .action-row {
+                flex-direction: column-reverse;
+                align-items: stretch;
+            }
+
+            .status {
+                text-align: center;
+                margin-bottom: 0.5rem;
+            }
+
+            button {
+                width: 100%;
+                padding: 1rem;
+            }
+
+            input[type="text"] {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Noc Vědy: Šifrovací Výzva</h1>
-        <p class="instructions">Zadej své jméno a konečnou tajenku z dokumentu <strong>sifry.docx</strong>. Všechny šifry používají 26 znakovou anglickou abecedu, a řeš bez AI!</p>
-
-        <div id="formSection">
-            <div class="input-group">
-                <label for="nameInput">Tvé jméno / Tým</label>
-                <input type="text" id="nameInput" placeholder="Např. Alan Turing">
-            </div>
-            
-            <div class="input-group">
-                <label for="answerInput">Tajenka (bez mezer a diakritiky)</label>
-                <input type="text" id="answerInput" placeholder="Odpověď z poslední šifry">
-            </div>
-
-            <button id="submitBtn">Ověřit řešení</button>
+    <div class="terminal-container">
+        <h1 id="main-header">Šifry z Noci Vědy</h1>
+        <div class="instructions" id="instructions">
+            Zadejte dešifrovaná slova, žádná diakritika a pouze velká písmena.
         </div>
 
-        <div id="diploma" class="diploma">
-            <h2>🏆 Virtuální Diplom 🏆</h2>
-            <p>Tímto potvrzujeme, že</p>
-            <div id="diplomaName" class="diploma-name"></div>
-            <p>úspěšně dešifroval(a) všechny zprávy na Noci Vědy!</p>
+        <div class="cipher-block">
+            <label for="cipher1">Šifra 1: Čtvrté slovo zprávy</label>
+            <input type="text" id="cipher1" autocomplete="off">
+            <div class="action-row">
+                <span class="status" id="status1"></span>
+                <button type="button" id="btn1" onclick="checkCipher(1)">Ověřit</button>
+            </div>
         </div>
-
-        <div class="leaderboard">
-            <h3>Síň slávy (Žebříček)</h3>
-            <table id="leaderboardTable">
-                <thead>
-                    <tr>
-                        <th class="rank">#</th>
-                        <th>Jméno</th>
-                        <th>Čas</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboardBody">
-                    <!-- Data z JS -->
-                </tbody>
-            </table>
+        
+        <div class="cipher-block">
+            <label for="cipher2">Šifra 2: Prvních šest znaků zprávy</label>
+            <input type="text" id="cipher2" autocomplete="off">
+            <div class="action-row">
+                <span class="status" id="status2"></span>
+                <button type="button" id="btn2" onclick="checkCipher(2)">Ověřit</button>
+            </div>
+        </div>
+        
+        <div class="cipher-block">
+            <label for="cipher3">Šifra 3: Poslední slovo zprávy</label>
+            <input type="text" id="cipher3" autocomplete="off">
+            <div class="action-row">
+                <span class="status" id="status3"></span>
+                <button type="button" id="btn3" onclick="checkCipher(3)">Ověřit</button>
+            </div>
+        </div>
+        
+        <div class="cipher-block">
+            <label for="cipher4">Šifra 4: Co/kdo ti má pomoct?</label>
+            <input type="text" id="cipher4" autocomplete="off">
+            <div class="action-row">
+                <span class="status" id="status4"></span>
+                <button type="button" id="btn4" onclick="checkCipher(4)">Ověřit</button>
+            </div>
+        </div>
+        
+        <div class="cipher-block" style="margin-bottom: 0;">
+            <label for="cipher5">Šifra 5: Jaké slovo se opakuje?</label>
+            <input type="text" id="cipher5" autocomplete="off">
+            <div class="action-row">
+                <span class="status" id="status5"></span>
+                <button type="button" id="btn5" onclick="checkCipher(5)">Ověřit</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // 1. ZDE DOPLŇ SPRÁVNOU TAJENKU
-        const CORRECT_ANSWER = "TVOJE_TAJENKA_ZDE"; 
+       const ANSWERS = {
+            1: "8b819df96b728f7f59f6b42903306b5507a7e6311ce998242a65bf535d126afc",
+            2: "62b8ce06186511868e26442362a19c0a187f233f925c762c0e26036fe8a92c31",
+            3: "e58360bdaa0897c3a73819472f8079f3cbc387ac93c4717fd5f500fe2be54712",
+            4: "9e2b59424bcc741c5560d66cda2a3f2c640a2cbd357ba2f8a82db8d971b1372e",
+            5: "7481e2b52819f28b57a8d75faa8b4bbddeb009cc3c2044cf12cc7973056cc026"
+        };
+
+        let solved = {
+            1: false,
+            2: false,
+            3: false,
+            4: false,
+            5: false
+        };
+
+        function normalizeText(text) {
+            return text.trim().toUpperCase().replace(/\s+/g, '');
+        }
         
-        // Získáme elementy
-        const submitBtn = document.getElementById('submitBtn');
-        const nameInput = document.getElementById('nameInput');
-        const answerInput = document.getElementById('answerInput');
-        const diploma = document.getElementById('diploma');
-        const diplomaName = document.getElementById('diplomaName');
-        const formSection = document.getElementById('formSection');
-        const leaderboardBody = document.getElementById('leaderboardBody');
-
-        // Formátování vstupu - převede na velká písmena, odstraní mezery
-        function normalizeString(str) {
-            return str.trim().toUpperCase().replace(/\s+/g, '');
+        async function hashText(text) {
+            const msgUint8 = new TextEncoder().encode(text); 
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        // Zobrazení žebříčku
-        function renderLeaderboard() {
-            const solvers = JSON.parse(localStorage.getItem('nocVedyLeaderboard')) || [];
-            leaderboardBody.innerHTML = '';
-            
-            if (solvers.length === 0) {
-                leaderboardBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #888;">Zatím nikdo, buď první!</td></tr>';
-                return;
-            }
+        async function checkCipher(number) {
+            if (solved[number]) return;
 
-            solvers.forEach((solver, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="rank">${index + 1}.</td>
-                    <td>${solver.name}</td>
-                    <td style="color: #888; font-size: 0.85rem;">${solver.time}</td>
-                `;
-                leaderboardBody.appendChild(tr);
-            });
-        }
+            const userInput = document.getElementById('cipher' + number).value;
+            const statusSpan = document.getElementById('status' + number);
+            const btn = document.getElementById('btn' + number);
 
-        // Kontrola řešení
-        submitBtn.addEventListener('click', () => {
-            const rawName = nameInput.value.trim();
-            const rawAnswer = answerInput.value;
+            const hashedInput = await hashText(normalizeText(userInput));
 
-            if (!rawName || !rawAnswer) {
-                alert("Prosím, vyplň své jméno i tajenku.");
-                return;
-            }
-
-            // Ošetření tajenky na 26 znakovou anglickou abecedu
-            const cleanAnswer = normalizeString(rawAnswer);
-
-            if (cleanAnswer === normalizeString(CORRECT_ANSWER)) {
-                // Skryjeme formulář, ukážeme diplom
-                formSection.style.display = 'none';
-                diplomaName.textContent = rawName;
-                diploma.style.display = 'block';
-
-                // Uložení do LocalStorage
-                const solvers = JSON.parse(localStorage.getItem('nocVedyLeaderboard')) || [];
-                const now = new Date();
-                const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+            if (hashedInput === ANSWERS[number]) {
+                statusSpan.textContent = "[ SPRÁVNĚ ]";
+                statusSpan.className = "status correct";
+                solved[number] = true;
                 
-                solvers.push({ name: rawName, time: timeString });
-                localStorage.setItem('nocVedyLeaderboard', JSON.stringify(solvers));
+                // Uzamknutí po správném zadání
+                document.getElementById('cipher' + number).disabled = true;
+                btn.disabled = true;
+                btn.textContent = "VYŘEŠENO";
 
-                renderLeaderboard();
+                checkIfAllDone();
             } else {
-                // Trestná prodleva proti hádání by se dala přidat zde
-                alert("Bohužel, tajenka není správná. Zkontroluj svůj postup a zkus to znovu!");
+                statusSpan.textContent = "[ ŠPATNĚ ]";
+                statusSpan.className = "status incorrect";
+                
+                // Efekt probliknutí červeného haze při chybě
+                const inputField = document.getElementById('cipher' + number);
+                inputField.style.backgroundColor = "rgba(232, 56, 56, 0.2)";
+                setTimeout(() => {
+                    inputField.style.backgroundColor = "";
+                }, 200);
             }
-        });
+        }
 
-        // Při načtení stránky vykreslíme tabulku
-        renderLeaderboard();
+        function checkIfAllDone() {
+            if (solved[1] && solved[2] && solved[3] && solved[4] && solved[5]) {
+                setTimeout(() => {
+                    // Přepnutí celé barevné palety stránky na zelenou
+                    document.body.classList.add("all-solved");
+
+                    const header = document.getElementById('main-header');
+                    header.textContent = "// VŠE VYŘEŠENO //";
+                    header.className = "success";
+                    
+                    const instructions = document.getElementById('instructions');
+                    instructions.innerHTML = "DOBRÁ PRÁCE KRYPTOANALYTIKU*ČKO.";
+                    instructions.style.color = "var(--acid-green)";
+                    instructions.style.textShadow = "0 0 8px var(--glow-green-soft)";
+                }, 400);
+            }
+        }
+        
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    // Extracts the number from 'cipher1' to target 'btn1'
+                    const buttonId = this.id.replace('cipher', 'btn');
+                    document.getElementById(buttonId).click();
+                }
+            });
+        });
     </script>
 </body>
 </html>
